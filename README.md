@@ -10,7 +10,7 @@ Project uses MediaProjection and ImageReader APIs to get frames from the device 
 **NB** I am not an Android developer. This project is a mix of official Android documentation, StackOverflow, googling and ChatGPT. I do not claim that it is good, it can definitely can be improved, but it serves its intended purpose.  
 
 ## Features
-* Usable to smooth FPS depending on device  
+* Usable to smooth FPS depending on device - probably reaches 30 FPS on my Huawei P20 Pro  
 * Usable but non-zero latency, might be a few frames behind
 * Frames are only sent when something changes on the screen, so you might not see a frame on initial connect
 * Easy socket interface - directly sends JPEG encoded image data that can be consumed on the other end
