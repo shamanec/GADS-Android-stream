@@ -3,7 +3,6 @@ package com.shamanec.stream;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject;
-import androidx.test.uiautomator.UiObject2;
 import androidx.test.uiautomator.UiObjectNotFoundException;
 import androidx.test.uiautomator.UiSelector;
 
@@ -13,11 +12,10 @@ import org.java_websocket.handshake.ClientHandshake;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
-public class LocalWebsocketServer extends org.java_websocket.server.WebSocketServer {
-
+public class InstrumentationWebSocketServer extends org.java_websocket.server.WebSocketServer {
     UiDevice uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
-    public LocalWebsocketServer(int port) {
+    public InstrumentationWebSocketServer(int port) {
         super(new InetSocketAddress(port));
     }
 
@@ -31,6 +29,19 @@ public class LocalWebsocketServer extends org.java_websocket.server.WebSocketSer
 
     @Override
     public void onMessage(WebSocket conn, String message) {
+        if (message.equals("type")) {
+            UiObject object = uiDevice.findObject(new UiSelector().focused(true));
+            try {
+                object.setText("Koleo");
+            } catch (UiObjectNotFoundException e) {
+                e.printStackTrace();
+            }
+        } else {
+            String[] coord = message.split(":");
+            int x = Integer.parseInt(coord[0]);
+            int y = Integer.parseInt(coord[1]);
+            uiDevice.click(x, y);
+        }
     }
 
     @Override
@@ -50,5 +61,4 @@ public class LocalWebsocketServer extends org.java_websocket.server.WebSocketSer
         setConnectionLostTimeout(0);
         setConnectionLostTimeout(100);
     }
-
 }
