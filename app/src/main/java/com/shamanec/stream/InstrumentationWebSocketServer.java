@@ -13,7 +13,9 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 public class InstrumentationWebSocketServer extends org.java_websocket.server.WebSocketServer {
-    UiDevice uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+
+
+    InstrumentationControl instrumentationControl = null;
 
     public InstrumentationWebSocketServer(int port) {
         super(new InetSocketAddress(port));
@@ -21,6 +23,8 @@ public class InstrumentationWebSocketServer extends org.java_websocket.server.We
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
+        UiDevice uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+        instrumentationControl = new InstrumentationControl(uiDevice);
     }
 
     @Override
@@ -29,19 +33,7 @@ public class InstrumentationWebSocketServer extends org.java_websocket.server.We
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        if (message.equals("type")) {
-            UiObject object = uiDevice.findObject(new UiSelector().focused(true));
-            try {
-                object.setText("Koleo");
-            } catch (UiObjectNotFoundException e) {
-                e.printStackTrace();
-            }
-        } else {
-            String[] coord = message.split(":");
-            int x = Integer.parseInt(coord[0]);
-            int y = Integer.parseInt(coord[1]);
-            uiDevice.click(x, y);
-        }
+        instrumentationControl.performAction(message);
     }
 
     @Override

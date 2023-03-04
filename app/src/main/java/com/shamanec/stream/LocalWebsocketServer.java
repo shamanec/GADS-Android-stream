@@ -15,8 +15,6 @@ import java.nio.ByteBuffer;
 
 public class LocalWebsocketServer extends org.java_websocket.server.WebSocketServer {
 
-    UiDevice uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
-
     public LocalWebsocketServer(int port) {
         super(new InetSocketAddress(port));
     }
