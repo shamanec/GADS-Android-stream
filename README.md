@@ -17,3 +17,14 @@ Project uses MediaProjection and ImageReader APIs to get frames from the device 
 
 ## Important
 Screenshot dimensions are scaled down by factor of 2 so that they can be compressed faster to achieve higher FPS. This in turn reduces image quality, especially on lower res devices. If libjpeg-turbo is integrated with the project or someone can improve the Bitmap compression speed - contributions are welcome.
+
+## Experimental instrumentation
+There is experimental control for devices through Android Instrumentation. It is implemented with an endlessly running UI test that starts a Websocket connection. On structured JSON message received by the Websocket, the Instrumentation can tap, swipe and type text on the device really fast.  
+* Start the instrumentation after installing GADS-Stream with `adb shell am instrument -w -e debug false com.shamanec.stream.test`  
+* Forward the Websocket connection to the host computer with `adb forward tcp:YOUR_PORT tcp:1992`  
+* Connect to the Websocket through Postman for example on `ws://localhost:YOUR_PORT`  
+* Send a JSON as message:  
+  * {"action":"typeText", "text": "text_to_type"}  
+  * {"action":"swipe", "startX": int, "startY": int, "endX":int, "endY": int}  
+  * {"action":"tap", "x": int, "y": int}  
+  * {"action":"executeShellCommand", "shellCommand":"shell command string"}
