@@ -3,7 +3,6 @@ package com.shamanec.stream;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject;
-import androidx.test.uiautomator.UiObject2;
 import androidx.test.uiautomator.UiObjectNotFoundException;
 import androidx.test.uiautomator.UiSelector;
 
@@ -13,14 +12,19 @@ import org.java_websocket.handshake.ClientHandshake;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
-public class LocalWebsocketServer extends org.java_websocket.server.WebSocketServer {
+public class InstrumentationWebSocketServer extends org.java_websocket.server.WebSocketServer {
 
-    public LocalWebsocketServer(int port) {
+
+    InstrumentationControl instrumentationControl = null;
+
+    public InstrumentationWebSocketServer(int port) {
         super(new InetSocketAddress(port));
     }
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
+        UiDevice uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+        instrumentationControl = new InstrumentationControl(uiDevice);
     }
 
     @Override
@@ -29,6 +33,7 @@ public class LocalWebsocketServer extends org.java_websocket.server.WebSocketSer
 
     @Override
     public void onMessage(WebSocket conn, String message) {
+        instrumentationControl.performAction(message);
     }
 
     @Override
@@ -48,5 +53,4 @@ public class LocalWebsocketServer extends org.java_websocket.server.WebSocketSer
         setConnectionLostTimeout(0);
         setConnectionLostTimeout(100);
     }
-
 }

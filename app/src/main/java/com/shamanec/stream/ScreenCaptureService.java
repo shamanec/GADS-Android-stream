@@ -32,6 +32,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import androidx.core.util.Pair;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.uiautomator.UiDevice;
 
 public class ScreenCaptureService extends Service {
     private MediaProjection mMediaProjection;
