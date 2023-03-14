@@ -33,30 +33,3 @@ jobs:
         asset_name: gads-stream.zip
         tag: ${{ github.ref_name }}
         overwrite: true
-#    - name: Upload APK Debug
-#      uses: actions/upload-artifact@v3
-#      with:
-#        name: gads-stream
-#        path: app/build/outputs/apk/debug/app-debug.apk
-#    - name: Download APK from build
-#      uses: actions/download-artifact@v3
-#      with:
-#        name: gads-stream
-#    - name: Create Release
-#      id: create_release
-#      uses: actions/create-release@v1
-#      env:
-#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      with:
-#        tag_name: latest
-#        release_name: latest
-#    - name: Upload Release APK
-#      id: upload_release_asset
-#      uses: actions/upload-release-asset@v1.0.1
-#      env:
-#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      with:
-#        upload_url: ${{ steps.create_release.outputs.upload_url }}
-#        asset_path: apk/app-debug.apk
-#        asset_name: gads-stream.apk
-#        asset_content_type: application/zip
