@@ -16,9 +16,6 @@ Project uses MediaProjection and ImageReader APIs to get frames from the device 
 * Frames are only sent when something changes on the screen, so you might not see a frame on initial connect
 * Easy socket interface - directly sends JPEG encoded image data that can be consumed on the other end
 
-## Important
-ImageReader dimensions are scaled down by factor of 2 so that they can be compressed faster to achieve higher FPS. This in turn reduces image quality, especially on lower res devices, but it is quite acceptable.  
-
 ## Starting the JPEG stream
 * Get the apk file from the releases or build the apk yourself
 * Execute `adb install -r appname.apk`  
