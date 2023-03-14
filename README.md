@@ -3,7 +3,7 @@ Inspired by DeviceFarmer [minicap](https://github.com/DeviceFarmer/minicap) to c
 
 GADS-Android-stream provides a socket interface for streaming realtime(almost) screen capture data out of Android devices. It is being used by [GADS](https://github.com/shamanec/GADS) for remote control of devices.  
 Supported Android SDK >= 23.  
-Not tested on simulators - might or might not work.  
+Should be working on simulators as well - tested on Pixel 4 API 29 
 
 Project uses MediaProjection and ImageReader APIs to get frames from the device screen and in theory should work for all devices.
 
