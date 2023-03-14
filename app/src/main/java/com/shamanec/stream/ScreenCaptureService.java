@@ -104,16 +104,14 @@ public class ScreenCaptureService extends Service {
 
         // Close the Image to free up memory
         image.close();
+        System.gc();
 
         // We reinitialize the bitmap object using the original bitmap
         // but with the display width and height
         // essentially cropping it properly
         bitmap = Bitmap.createBitmap(bitmap, 0, 0, mWidth, mHeight);
 
-        // We are scaling down the Bitmap by factor of 2 to achieve higher fps in exchange for lower image quality
-        // If libjpeg-turbo is implemented this might be removed
-        // but it FPS is not high enough using the actual size
-        return Bitmap.createScaledBitmap(bitmap, mWidth / 2, mHeight / 2, true);
+        return bitmap;
     }
 
 
@@ -128,10 +126,11 @@ public class ScreenCaptureService extends Service {
 
                     // Compress the Bitmap as JPEG into the ByteArrayOutputStream
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 50, stream);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
 
                     // Recycle the bitmap to free up memory
                     bitmap.recycle();
+                    System.gc();
 
                     // Get the JPEG as byte array
                     byte[] byteArray = stream.toByteArray();
@@ -278,8 +277,11 @@ public class ScreenCaptureService extends Service {
         // We get the real display metrics on the display object
         final DisplayMetrics metrics = new DisplayMetrics();
         mDisplay.getRealMetrics(metrics);
-        mWidth = metrics.widthPixels;
-        mHeight = metrics.heightPixels;
+        // Set up the width and height for the image reader to be half of the real display metrics
+        // This significantly increases the FPS even with JPEG quality of 100
+        // Instead of rescaling bitmaps which reduces quality even further
+        mWidth = metrics.widthPixels / 2;
+        mHeight = metrics.heightPixels / 2;
         mDensity = metrics.densityDpi;
 
         // Create an ImageReader object with the proper display dimensions and PixelFormat
