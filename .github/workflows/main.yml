@@ -3,6 +3,8 @@ name: Android CI
 on:
   push:
     branches: [ "add-action" ]
+    tags:
+      - '*'
     
 jobs:
   build_and_release:
@@ -18,31 +20,42 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build assembleDebug --stacktrace
-    - name: Upload APK Debug
-      uses: actions/upload-artifact@v3
-      with:
-        name: gads-stream
-        path: app/build/outputs/apk/debug/app-debug.apk
-    - name: Download APK from build
-      uses: actions/download-artifact@v3
-      with:
-        name: gads-stream
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: latest
-        release_name: latest
-    - name: Upload Release APK
-      id: upload_release_asset
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: apk/app-debug.apk
-        asset_name: gads-stream.apk
-        asset_content_type: application/zip
+      run: |
+        ./gradlew build assembleDebug --stacktrace
+        mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/gads-stream.apk
+        zip -j gads-stream.zip app/build/outputs/apk/debug/gads-stream.apk
+    - name: Upload release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: gads-stream.zip
+          asset_name: gads-stream.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+#    - name: Upload APK Debug
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: gads-stream
+#        path: app/build/outputs/apk/debug/app-debug.apk
+#    - name: Download APK from build
+#      uses: actions/download-artifact@v3
+#      with:
+#        name: gads-stream
+#    - name: Create Release
+#      id: create_release
+#      uses: actions/create-release@v1
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      with:
+#        tag_name: latest
+#        release_name: latest
+#    - name: Upload Release APK
+#      id: upload_release_asset
+#      uses: actions/upload-release-asset@v1.0.1
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      with:
+#        upload_url: ${{ steps.create_release.outputs.upload_url }}
+#        asset_path: apk/app-debug.apk
+#        asset_name: gads-stream.apk
+#        asset_content_type: application/zip
