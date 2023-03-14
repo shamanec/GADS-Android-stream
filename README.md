@@ -17,12 +17,19 @@ Project uses MediaProjection and ImageReader APIs to get frames from the device 
 * Easy socket interface - directly sends JPEG encoded image data that can be consumed on the other end
 
 ## Starting the JPEG stream
-* Get the apk file from the releases or build the apk yourself
-* Execute `adb install -r appname.apk`  
-* Give recording permissions with `adb shell appops set com.shamanec.stream PROJECT_MEDIA allow`  
-* Start the stream app with `adb shell am start -n com.shamanec.stream/com.shamanec.stream.ScreenCaptureActivity`  
-* To hide the transparent activity tap Home on the device or run `adb shell input keyevent KEYCODE_HOME`  
-* Forward the stream socket to the PC with `adb forward tcp:YOUR_PORT tcp:1991` or directly connect to it using the IP address of the device itself  
+* Download the latest apk file from the Github releases
+* Execute `adb install -r gads-stream.apk`  
+1. Run from terminal  
+   * Give recording permissions with `adb shell appops set com.shamanec.stream PROJECT_MEDIA allow`  
+   * Start the stream app with `adb shell am start -n com.shamanec.stream/com.shamanec.stream.ScreenCaptureActivity`  
+   * To hide the transparent activity tap Home on the device or run `adb shell input keyevent KEYCODE_HOME`  
+   * Forward the stream socket to the PC with `adb forward tcp:YOUR_PORT tcp:1991` or directly connect to it using the IP address of the device itself  
+2. Run manually  
+   * Find the GADS-Stream application on the device  
+   * Start it  
+   * Allow recording permissions  
+   * Tap Home to hide the transparent activity that was loaded  
+   * Forward the stream socket to the PC with `adb forward tcp:YOUR_PORT tcp:1991` or directly connect to it using the IP address of the device itself
 
 ## Experimental instrumentation
 There is experimental control for devices through Android Instrumentation. It is implemented with an endlessly running UI test that starts a Websocket connection. On structured JSON message received by the Websocket, the Instrumentation can tap, swipe and type text on the device really fast.  
