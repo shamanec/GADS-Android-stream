@@ -2,7 +2,6 @@ name: Android CI
 
 on:
   push:
-    branches: [ "add-action" ]
     tags:
       - '*'
     
@@ -32,7 +31,7 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: gads-stream.zip
         asset_name: gads-stream.zip
-        tag: ${{ github.ref }}
+        tag: ${{ github.ref_name }}
         overwrite: true
 #    - name: Upload APK Debug
 #      uses: actions/upload-artifact@v3
