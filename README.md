@@ -30,8 +30,9 @@ Project uses MediaProjection and ImageReader APIs to get frames from the device 
    * Start it  
    * Allow recording permissions  
    * Tap Home to hide the transparent activity that was loaded  
-   * Forward the stream socket to the PC with `adb forward tcp:YOUR_PORT tcp:1991` or directly connect to it using the IP address of the device itself
-   
+   * Forward the stream socket to the PC with `adb forward tcp:YOUR_PORT tcp:1991` or directly connect to it using the IP address of the device itself  
+* **NB** This is a websocket, not an http server. To display in browser you need to consume the JPEGs and render them or create an MJPEG stream out of them using something else. Personally I use Go to create an MJPEG stream from the JPEGs received over the websocket to easily display the stream on an endpoint.  
+
 ## Huawei P20 Pro
 
 https://user-images.githubusercontent.com/60219580/225242492-a6ef8b24-4f66-4ecd-9e95-bbb7c4f9c304.MOV
