@@ -8,6 +8,7 @@ import android.os.Bundle;
 
 public class ScreenCaptureActivity extends Activity {
     private static final int REQUEST_CODE = 100;
+    public static int jpegQuality;
 
     //The onCreate method is an Android activity lifecycle method that gets called when the activity is created.
     // In this case, it sets the layout for the activity and calls startProjection().
@@ -15,6 +16,7 @@ public class ScreenCaptureActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        jpegQuality = getIntent().getIntExtra("jpegQuality", 100);
         startProjection();
     }
 

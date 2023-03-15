@@ -23,6 +23,8 @@ Project uses MediaProjection and ImageReader APIs to get frames from the device 
 1. Run from terminal  
    * Give recording permissions with `adb shell appops set com.shamanec.stream PROJECT_MEDIA allow`  
    * Start the stream app with `adb shell am start -n com.shamanec.stream/com.shamanec.stream.ScreenCaptureActivity`  
+     * From terminal you also have the option to control the JPEG quality with `adb shell am start -a android.intent.action.MAIN -n com.shamanec.stream/com.shamanec.stream.ScreenCaptureActivity --ei jpegQuality 100`  
+     * `jpegQuality` accepts values between 1-100 where 1 is the lowest quality and 100 is the highest quality. Default is 100 if you don't provide it. Reducing the quality increases the FPS but values below 75 seem to provide negligible improvements.  
    * To hide the transparent activity tap Home on the device or run `adb shell input keyevent KEYCODE_HOME`  
    * Forward the stream socket to the PC with `adb forward tcp:YOUR_PORT tcp:1991` or directly connect to it using the IP address of the device itself  
 2. Run manually  
