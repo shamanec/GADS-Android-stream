@@ -11,10 +11,11 @@ Project uses MediaProjection and ImageReader APIs to get frames from the device 
 
 ## Features
 * Reasonable quality - ImageReader dimensions are scaled down by factor of 2 and then the Bitmaps are compressed to JPEG which reduces quality even further, despite that the quality is good on higher resolution devices and acceptable on lower resolution devices  
-* Usable to smooth fps - seems to be quite acceptable even on my Sony Xperia XA from 2016
-* Non-zero latency, might be a few frames behind, but almost non-existent when running locally
+* Usable to smooth fps - acceptable even on my Sony Xperia XA from 2016
+* Non-zero latency, might be a few frames behind, like 0.5 sec
 * Frames are only sent when something changes on the screen, so you might not see a frame on initial connect
-* Easy socket interface - directly sends JPEG encoded image data that can be consumed on the other end
+* Easy socket interface - directly sends JPEG encoded image data that can be consumed on the other end  
+* Automatic rotation handling - JPEGs will respect the current device rotation
 
 ## Starting the JPEG stream
 * Download the latest apk file from the Github releases
