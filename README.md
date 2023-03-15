@@ -31,6 +31,14 @@ Project uses MediaProjection and ImageReader APIs to get frames from the device 
    * Allow recording permissions  
    * Tap Home to hide the transparent activity that was loaded  
    * Forward the stream socket to the PC with `adb forward tcp:YOUR_PORT tcp:1991` or directly connect to it using the IP address of the device itself
+   
+## Huawei P20 Pro
+
+https://user-images.githubusercontent.com/60219580/225242492-a6ef8b24-4f66-4ecd-9e95-bbb7c4f9c304.MOV
+
+## Sony Xperia XA 2016 with rotation
+
+https://user-images.githubusercontent.com/60219580/225242651-b73ecada-d6bb-4334-8e71-d367cbd96f7b.MOV
 
 ## Experimental instrumentation
 There is experimental control for devices through Android Instrumentation. It is implemented with an endlessly running UI test that starts a Websocket connection. On structured JSON message received by the Websocket, the Instrumentation can tap, swipe and type text on the device really fast.  
