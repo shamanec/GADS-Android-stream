@@ -28,8 +28,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import androidx.core.util.Pair;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -99,12 +101,11 @@ public class ScreenCaptureService extends Service {
 
         // Create the initial bitmap object
         // And copy into it the pixels from the buffer declared above
-        Bitmap bitmap = Bitmap.createBitmap(newWidth, mHeight, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(newWidth, mHeight, Bitmap.Config.ARGB_4444);
         bitmap.copyPixelsFromBuffer(buffer);
 
         // Close the Image to free up memory
         image.close();
-        System.gc();
 
         // We reinitialize the bitmap object using the original bitmap
         // but with the display width and height
@@ -114,6 +115,34 @@ public class ScreenCaptureService extends Service {
         return bitmap;
     }
 
+    BlockingQueue<Bitmap> imageQueue = new LinkedBlockingDeque<>(3);
+
+    private class ImageConsumer implements Runnable {
+
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    // Take the next image from the queue (this will block if the queue is empty)
+                    Bitmap bitmap = imageQueue.take();
+
+                    // Compress the image
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
+
+                    bitmap.recycle();
+                    byte[] compressedImage = outputStream.toByteArray();
+
+                    // Send the compressed image over the WebSocket
+                    server.broadcast(compressedImage);
+
+                } catch (InterruptedException e) {
+                    // Handle interruption or exit the loop
+                    break;
+                }
+            }
+        }
+    }
 
     private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
         @Override
@@ -123,20 +152,7 @@ public class ScreenCaptureService extends Service {
             try (Image image = mImageReader.acquireLatestImage()) {
                 if (image != null) {
                     bitmap = imageToBitmap(image);
-
-                    // Compress the Bitmap as JPEG into the ByteArrayOutputStream
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, ScreenCaptureActivity.jpegQuality, stream);
-
-                    // Recycle the bitmap to free up memory
-                    bitmap.recycle();
-                    System.gc();
-
-                    // Get the JPEG as byte array
-                    byte[] byteArray = stream.toByteArray();
-
-                    // Broadcast the JPEG image over the websocket
-                    server.broadcast(byteArray);
+                    imageQueue.put(bitmap);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -290,6 +306,9 @@ public class ScreenCaptureService extends Service {
         // Create the VirtualDisplay object with all properties we have obtained until now
         mVirtualDisplay = mMediaProjection.createVirtualDisplay("screencapture", mWidth, mHeight,
                 mDensity, getVirtualDisplayFlags(), mImageReader.getSurface(), null, mHandler);
+
+        Thread imageConsumerThread = new Thread(new ImageConsumer());
+        imageConsumerThread.start();
 
         // Set an ImageAvailableListener on the ImageReader object
         mImageReader.setOnImageAvailableListener(new ImageAvailableListener(), mHandler);
