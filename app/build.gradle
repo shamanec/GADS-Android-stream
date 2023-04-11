@@ -16,6 +16,13 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.22.1"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -30,6 +37,7 @@ android {
 
 dependencies {
 
+    implementation 'org.libjpeg-turbo:libjpeg-turbo:2.1.2'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'org.java-websocket:Java-WebSocket:1.5.3'

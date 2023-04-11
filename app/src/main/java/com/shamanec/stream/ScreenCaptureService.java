@@ -36,6 +36,10 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
 
 public class ScreenCaptureService extends Service {
+    static {
+        System.loadLibrary("native-lib");
+    }
+
     private MediaProjection mMediaProjection;
     private ImageReader mImageReader;
     private Handler mHandler;
@@ -46,6 +50,8 @@ public class ScreenCaptureService extends Service {
     private int mHeight;
     private int mRotation;
     private OrientationChangeCallback mOrientationChangeCallback;
+
+    private native byte[] compressImageToJpeg(Bitmap bitmap, int quality);
 
     LocalWebsocketServer server;
 
@@ -124,16 +130,18 @@ public class ScreenCaptureService extends Service {
                 if (image != null) {
                     bitmap = imageToBitmap(image);
 
+                    byte[] byteArray = compressImageToJpeg(bitmap, 100);
+
                     // Compress the Bitmap as JPEG into the ByteArrayOutputStream
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, ScreenCaptureActivity.jpegQuality, stream);
+//                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//                    bitmap.compress(Bitmap.CompressFormat.JPEG, ScreenCaptureActivity.jpegQuality, stream);
 
                     // Recycle the bitmap to free up memory
                     bitmap.recycle();
                     System.gc();
 
                     // Get the JPEG as byte array
-                    byte[] byteArray = stream.toByteArray();
+                   // byte[] byteArray = stream.toByteArray();
 
                     // Broadcast the JPEG image over the websocket
                     server.broadcast(byteArray);
