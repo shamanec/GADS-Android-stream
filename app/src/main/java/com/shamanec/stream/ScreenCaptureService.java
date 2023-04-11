@@ -128,7 +128,7 @@ public class ScreenCaptureService extends Service {
 
                     // Compress the image
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, ScreenCaptureActivity.jpegQuality, outputStream);
 
                     bitmap.recycle();
                     byte[] compressedImage = outputStream.toByteArray();
