@@ -296,8 +296,16 @@ public class ScreenCaptureService extends Service {
         // Set up the width and height for the image reader to be half of the real display metrics
         // This significantly increases the FPS even with JPEG quality of 100
         // Instead of rescaling bitmaps which reduces quality even further
-        mWidth = metrics.widthPixels / 2;
-        mHeight = metrics.heightPixels / 2;
+        int metricsWidth = metrics.widthPixels;
+        int metricsHeight = metrics.heightPixels;
+        if (metricsWidth > 720 && metricsHeight > 1280) {
+            mWidth = metricsWidth / 2;
+            mHeight = metricsHeight / 2;
+        } else {
+            mWidth = metricsWidth;
+            mHeight = metricsHeight;
+        }
+
         mDensity = metrics.densityDpi;
 
         // Create an ImageReader object with the proper display dimensions and PixelFormat
