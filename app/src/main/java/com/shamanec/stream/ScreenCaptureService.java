@@ -169,6 +169,7 @@ public class ScreenCaptureService extends Service {
 
         @Override
         public void onOrientationChanged(int orientation) {
+            imageQueue.clear();
             // When orientation changes get the display rotation
             final int rotation = mDisplay.getRotation();
             // If the current rotation is different than the previous rotation
