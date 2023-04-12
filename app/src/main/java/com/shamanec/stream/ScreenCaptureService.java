@@ -116,12 +116,7 @@ public class ScreenCaptureService extends Service {
     }
 
     BlockingQueue<Bitmap> imageQueue = new LinkedBlockingDeque<>(3);
-    private long frameCount = 0;
-    private long startTime = System.currentTimeMillis();
-
-
     private class ImageConsumer implements Runnable {
-
         @Override
         public void run() {
             while (true) {
@@ -135,19 +130,6 @@ public class ScreenCaptureService extends Service {
 
                     bitmap.recycle();
                     byte[] compressedImage = outputStream.toByteArray();
-
-                    frameCount++;
-
-                    long currentTime = System.currentTimeMillis();
-                    long elapsedTime = currentTime - startTime;
-                    if (elapsedTime >= 1000) { // Check if 1000 milliseconds (1 second) have passed
-                        float fps = (float) frameCount * 1000 / elapsedTime;
-                        Log.d("FPS", "Frames per second: " + fps);
-
-                        // Reset the frame count and start time
-                        frameCount = 0;
-                        startTime = currentTime;
-                    }
 
                     // Send the compressed image over the WebSocket
                     server.broadcast(compressedImage);
@@ -315,19 +297,9 @@ public class ScreenCaptureService extends Service {
         // Instead of rescaling bitmaps which reduces quality even further
         int metricsWidth = metrics.widthPixels;
         int metricsHeight = metrics.heightPixels;
-        if (metricsWidth > metricsHeight) {
-            if (metricsWidth > 1280 && metricsHeight > 720) {
-                mWidth = metricsWidth / 2;
-                mHeight = metricsHeight / 2;
-            }
-        } else if (metricsWidth > 720 && metricsHeight > 1280) {
-            mWidth = metricsWidth / 2;
-            mHeight = metricsHeight / 2;
-        } else {
-            mWidth = metricsWidth;
-            mHeight = metricsHeight;
-        }
 
+        mWidth = metricsWidth / 2;
+        mHeight = metricsHeight / 2;
         mDensity = metrics.densityDpi;
 
         // Create an ImageReader object with the proper display dimensions and PixelFormat
