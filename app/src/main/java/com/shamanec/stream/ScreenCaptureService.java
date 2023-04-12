@@ -116,6 +116,9 @@ public class ScreenCaptureService extends Service {
     }
 
     BlockingQueue<Bitmap> imageQueue = new LinkedBlockingDeque<>(3);
+    private long frameCount = 0;
+    private long startTime = System.currentTimeMillis();
+
 
     private class ImageConsumer implements Runnable {
 
@@ -132,6 +135,19 @@ public class ScreenCaptureService extends Service {
 
                     bitmap.recycle();
                     byte[] compressedImage = outputStream.toByteArray();
+
+                    frameCount++;
+
+                    long currentTime = System.currentTimeMillis();
+                    long elapsedTime = currentTime - startTime;
+                    if (elapsedTime >= 1000) { // Check if 1000 milliseconds (1 second) have passed
+                        float fps = (float) frameCount * 1000 / elapsedTime;
+                        Log.d("FPS", "Frames per second: " + fps);
+
+                        // Reset the frame count and start time
+                        frameCount = 0;
+                        startTime = currentTime;
+                    }
 
                     // Send the compressed image over the WebSocket
                     server.broadcast(compressedImage);
