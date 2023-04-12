@@ -115,7 +115,7 @@ public class ScreenCaptureService extends Service {
         return bitmap;
     }
 
-    BlockingQueue<Bitmap> imageQueue = new LinkedBlockingDeque<>(5);
+    BlockingQueue<Bitmap> imageQueue = new LinkedBlockingDeque<>(3);
 
     private class ImageConsumer implements Runnable {
 
