@@ -298,7 +298,12 @@ public class ScreenCaptureService extends Service {
         // Instead of rescaling bitmaps which reduces quality even further
         int metricsWidth = metrics.widthPixels;
         int metricsHeight = metrics.heightPixels;
-        if (metricsWidth > 720 && metricsHeight > 1280) {
+        if (metricsWidth > metricsHeight) {
+            if (metricsWidth > 1280 && metricsHeight > 720) {
+                mWidth = metricsWidth / 2;
+                mHeight = metricsHeight / 2;
+            }
+        } else if (metricsWidth > 720 && metricsHeight > 1280) {
             mWidth = metricsWidth / 2;
             mHeight = metricsHeight / 2;
         } else {
