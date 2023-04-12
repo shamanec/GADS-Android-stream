@@ -16,7 +16,7 @@ public class ScreenCaptureActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        jpegQuality = getIntent().getIntExtra("jpegQuality", 100);
+        jpegQuality = getIntent().getIntExtra("jpegQuality", 90);
         startProjection();
     }
 
