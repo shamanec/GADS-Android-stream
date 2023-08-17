@@ -53,6 +53,7 @@ public class ScreenCaptureService extends Service {
 
     public ScreenCaptureService() throws IOException {
         server = new LocalWebsocketServer(1991);
+        server.setReuseAddr(true);
         server.start();
     }
 
