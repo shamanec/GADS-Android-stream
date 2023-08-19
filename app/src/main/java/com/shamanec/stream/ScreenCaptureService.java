@@ -49,6 +49,9 @@ public class ScreenCaptureService extends Service {
     private int mRotation;
     private OrientationChangeCallback mOrientationChangeCallback;
 
+    public static int metricsWidth;
+    public static int metricsHeight;
+
     LocalWebsocketServer server;
 
     public ScreenCaptureService() throws IOException {
@@ -130,10 +133,17 @@ public class ScreenCaptureService extends Service {
                     bitmap.compress(Bitmap.CompressFormat.JPEG, ScreenCaptureActivity.jpegQuality, outputStream);
 
                     bitmap.recycle();
+
+                    // Message type `2` for images
+                    byte[] messageTypeBytes = ByteBuffer.allocate(4).putInt(2).array();
                     byte[] compressedImage = outputStream.toByteArray();
 
+                    byte[] combinedBytes = new byte[messageTypeBytes.length + compressedImage.length];
+                    System.arraycopy(messageTypeBytes, 0, combinedBytes, 0, messageTypeBytes.length);
+                    System.arraycopy(compressedImage, 0, combinedBytes, messageTypeBytes.length, compressedImage.length);
+
                     // Send the compressed image over the WebSocket
-                    server.broadcast(compressedImage);
+                    server.broadcast(combinedBytes);
 
                 } catch (InterruptedException e) {
                     // Handle interruption or exit the loop
@@ -296,8 +306,8 @@ public class ScreenCaptureService extends Service {
         // Set up the width and height for the image reader to be half of the real display metrics
         // This significantly increases the FPS even with JPEG quality of 100
         // Instead of rescaling bitmaps which reduces quality even further
-        int metricsWidth = metrics.widthPixels;
-        int metricsHeight = metrics.heightPixels;
+        metricsWidth = metrics.widthPixels;
+        metricsHeight = metrics.heightPixels;
 
         mWidth = metricsWidth / 2;
         mHeight = metricsHeight / 2;
