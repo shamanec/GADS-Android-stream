@@ -33,7 +33,7 @@ public class InstrumentationWebSocketServer extends org.java_websocket.server.We
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        instrumentationControl.performAction(message);
+        instrumentationControl.performAction(conn, message);
     }
 
     @Override

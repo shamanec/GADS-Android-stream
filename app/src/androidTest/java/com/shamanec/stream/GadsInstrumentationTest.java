@@ -23,6 +23,7 @@ public class GadsInstrumentationTest {
     public void endlessTest() {
         logToConsole("Started endless test");
         server = new InstrumentationWebSocketServer(1992);
+        server.setReuseAddr(true);
         logToConsole("Starting server on port 1992");
         server.start();
         logToConsole("Server started");
