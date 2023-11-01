@@ -1,5 +1,4 @@
 ## GADS-Android-stream
-Inspired by DeviceFarmer [minicap](https://github.com/DeviceFarmer/minicap) to create my own solution  
 
 GADS-Android-stream provides a socket interface for streaming realtime(almost) screen capture data out of Android devices. It is being used by [GADS](https://github.com/shamanec/GADS) for remote control of devices.  
 Supported Android SDK >= 23.  
@@ -12,7 +11,7 @@ Project uses MediaProjection and ImageReader APIs to get frames from the device 
 ## Features
 * Reasonable quality - ImageReader dimensions are scaled down by factor of 2 and then the Bitmaps are compressed to JPEG which reduces quality even further, despite that the quality is good on higher resolution devices and acceptable on lower resolution devices  
 * Usable to smooth fps - acceptable even on my Sony Xperia XA from 2016
-* Non-zero latency, might be a few frames behind, like 0.5 sec
+* Non-zero latency, might be a few frames behind, like 0.5-1 sec
 * Frames are only sent when something changes on the screen, so you might not see a frame on initial connect
 * Easy socket interface - directly sends JPEG encoded image data that can be consumed on the other end  
 * Automatic rotation handling - JPEGs will respect the current device rotation
