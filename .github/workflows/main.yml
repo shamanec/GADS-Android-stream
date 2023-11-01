@@ -24,12 +24,11 @@ jobs:
       run: |
         ./gradlew build assembleDebug --stacktrace
         mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/gads-stream.apk
-        zip -j gads-stream.zip app/build/outputs/apk/debug/gads-stream.apk
     - name: Upload release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: gads-stream.zip
-        asset_name: gads-stream.zip
+        file: app/build/outputs/apk/debug/gads-stream.apk
+        asset_name: gads-stream.apk
         tag: ${{ github.ref_name }}
         overwrite: true
