@@ -21,7 +21,7 @@ public class LocalWebsocketServer extends org.java_websocket.server.WebSocketSer
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
-        conn.send(getDeviceInfo());
+
     }
 
     @Override
@@ -30,9 +30,6 @@ public class LocalWebsocketServer extends org.java_websocket.server.WebSocketSer
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        if (message == "info") {
-            conn.send(getDeviceInfo());
-        }
     }
 
     @Override
@@ -52,22 +49,4 @@ public class LocalWebsocketServer extends org.java_websocket.server.WebSocketSer
         setConnectionLostTimeout(0);
         setConnectionLostTimeout(100);
     }
-
-    private byte[] getDeviceInfo() {
-        ByteBuffer infoMessage = ByteBuffer.allocate(8);
-        infoMessage.putInt(ScreenCaptureService.metricsWidth);
-        infoMessage.putInt(ScreenCaptureService.metricsHeight);
-
-        // Message type `1` for information
-        byte[] messageTypeBytes = ByteBuffer.allocate(4).putInt(1).array();
-        byte[] infoBytes = infoMessage.array();
-
-        byte[] combinedBytes = new byte[messageTypeBytes.length + infoBytes.length];
-
-        System.arraycopy(messageTypeBytes, 0, combinedBytes, 0, messageTypeBytes.length);
-        System.arraycopy(infoBytes, 0, combinedBytes, messageTypeBytes.length, infoBytes.length);
-
-        return combinedBytes;
-    }
-
 }
