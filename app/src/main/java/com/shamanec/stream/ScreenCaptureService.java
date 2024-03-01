@@ -261,6 +261,9 @@ public class ScreenCaptureService extends Service {
         if (mMediaProjection == null) {
             mMediaProjection = mpManager.getMediaProjection(resultCode, data);
             if (mMediaProjection != null) {
+                // Register media projection stop callback
+                mMediaProjection.registerCallback(new MediaProjectionStopCallback(), mHandler);
+
                 // If MediaProjection object is successfully obtained we create a virtual display
                 WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
                 // Get the actual display
@@ -272,9 +275,6 @@ public class ScreenCaptureService extends Service {
                 if (mOrientationChangeCallback.canDetectOrientation()) {
                     mOrientationChangeCallback.enable();
                 }
-
-                // Register media projection stop callback
-                mMediaProjection.registerCallback(new MediaProjectionStopCallback(), mHandler);
             }
         }
     }
