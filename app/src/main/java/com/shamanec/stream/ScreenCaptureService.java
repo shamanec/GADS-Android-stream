@@ -49,10 +49,31 @@ public class ScreenCaptureService extends Service {
     private int mRotation;
     private OrientationChangeCallback mOrientationChangeCallback;
 
+    private int targetFPS = 15;
+    private int jpegQuality = 90;
+    private int scalingFactor = 2;
+    private long frameIntervalMs = 1000 / targetFPS;
+
     LocalWebsocketServer server;
 
+    public void setTargetFPS(int fps) {
+        this.targetFPS = fps;
+        this.frameIntervalMs = 1000 / fps;
+        Log.d("ScreenCaptureService", "Target FPS set to: " + fps);
+    }
+
+    public void setJpegQuality(int jpegQuality) {
+        this.jpegQuality = jpegQuality;
+        Log.d("ScreenCaptureService", "Jpeg quality set to: " + jpegQuality);
+    }
+
+    public void setScalingFactor(int scalingFactor) {
+        this.scalingFactor = scalingFactor == 50 ? 2 : 4;
+        Log.d("ScreenCaptureService", "Scaling factor set to: " + scalingFactor);
+    }
+
     public ScreenCaptureService() throws IOException {
-        server = new LocalWebsocketServer(1991);
+        server = new LocalWebsocketServer(1991, this);
         server.setReuseAddr(true);
         server.start();
     }
@@ -127,7 +148,7 @@ public class ScreenCaptureService extends Service {
 
                     // Compress the image
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, ScreenCaptureActivity.jpegQuality, outputStream);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, jpegQuality, outputStream);
 
                     bitmap.recycle();
 
@@ -135,6 +156,9 @@ public class ScreenCaptureService extends Service {
 
                     // Send the compressed image over the WebSocket
                     server.broadcast(compressedImage);
+
+                    // Wait for the frame interval before capturing the next frame
+                    Thread.sleep(frameIntervalMs);
 
                 } catch (InterruptedException e) {
                     // Handle interruption or exit the loop
@@ -300,8 +324,8 @@ public class ScreenCaptureService extends Service {
         int metricsWidth = metrics.widthPixels;
         int metricsHeight = metrics.heightPixels;
 
-        mWidth = metricsWidth / 2;
-        mHeight = metricsHeight / 2;
+        mWidth = metricsWidth / scalingFactor;
+        mHeight = metricsHeight / scalingFactor;
         mDensity = metrics.densityDpi;
 
         // Create an ImageReader object with the proper display dimensions and PixelFormat
