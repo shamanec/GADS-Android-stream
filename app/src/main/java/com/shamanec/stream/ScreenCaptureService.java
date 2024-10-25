@@ -27,6 +27,8 @@ import android.view.WindowManager;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
@@ -49,10 +51,31 @@ public class ScreenCaptureService extends Service {
     private int mRotation;
     private OrientationChangeCallback mOrientationChangeCallback;
 
+    private int targetFPS = 15;
+    private int jpegQuality = 90;
+    private int scalingFactor = 2;
+    private long frameIntervalMs = 1000 / targetFPS;
+
     LocalWebsocketServer server;
 
+    public void setTargetFPS(int fps) {
+        this.targetFPS = fps;
+        this.frameIntervalMs = 1000 / fps;
+        Log.d("ScreenCaptureService", "Target FPS set to: " + this.targetFPS);
+    }
+
+    public void setJpegQuality(int jpegQuality) {
+        this.jpegQuality = jpegQuality;
+        Log.d("ScreenCaptureService", "Jpeg quality set to: " + this.jpegQuality);
+    }
+
+    public void setScalingFactor(int scalingFactor) {
+        this.scalingFactor = scalingFactor == 50 ? 2 : 4;
+        Log.d("ScreenCaptureService", "Scaling factor set to: " + this.scalingFactor);
+    }
+
     public ScreenCaptureService() throws IOException {
-        server = new LocalWebsocketServer(1991);
+        server = new LocalWebsocketServer(1991, this);
         server.setReuseAddr(true);
         server.start();
     }
@@ -118,6 +141,8 @@ public class ScreenCaptureService extends Service {
 
     BlockingQueue<Bitmap> imageQueue = new LinkedBlockingDeque<>(3);
     private class ImageConsumer implements Runnable {
+        private String previousBitmapHash = null;
+
         @Override
         public void run() {
             while (true) {
@@ -125,21 +150,48 @@ public class ScreenCaptureService extends Service {
                     // Take the next image from the queue (this will block if the queue is empty)
                     Bitmap bitmap = imageQueue.take();
 
-                    // Compress the image
-                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, ScreenCaptureActivity.jpegQuality, outputStream);
+                    // Get the hash of the current bitmap
+                    String currentBitmapHash = getBitmapHash(bitmap);
+                    // If the current bitmap hash has is different from the previous bitmap hash
+                    // Then we have a new different frame so we sent it
+                    // Else we just skip the frame and recycle the bitmap directly and wait for next frame
+                    if (!currentBitmapHash.equals(previousBitmapHash)) {
+                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, jpegQuality, outputStream);
+                        byte[] compressedImage = outputStream.toByteArray();
+
+                        server.broadcast(compressedImage);
+                        previousBitmapHash = currentBitmapHash;
+                    }
 
                     bitmap.recycle();
 
-                    byte[] compressedImage = outputStream.toByteArray();
-
-                    // Send the compressed image over the WebSocket
-                    server.broadcast(compressedImage);
+                    // Wait for the frame interval before capturing the next frame
+                    Thread.sleep(frameIntervalMs);
 
                 } catch (InterruptedException e) {
                     // Handle interruption or exit the loop
                     break;
                 }
+            }
+        }
+
+        private String getBitmapHash(Bitmap bitmap) {
+            try {
+                MessageDigest digest = MessageDigest.getInstance("MD5");
+                ByteBuffer buffer = ByteBuffer.allocate(bitmap.getByteCount());
+                bitmap.copyPixelsToBuffer(buffer);
+                byte[] pixelData = buffer.array();
+                byte[] hashBytes = digest.digest(pixelData);
+
+                // Convert hash bytes to hex string
+                StringBuilder hashString = new StringBuilder();
+                for (byte b : hashBytes) {
+                    hashString.append(String.format("%02x", b));
+                }
+                return hashString.toString();
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException(e);
             }
         }
     }
@@ -300,8 +352,8 @@ public class ScreenCaptureService extends Service {
         int metricsWidth = metrics.widthPixels;
         int metricsHeight = metrics.heightPixels;
 
-        mWidth = metricsWidth / 2;
-        mHeight = metricsHeight / 2;
+        mWidth = metricsWidth / scalingFactor;
+        mHeight = metricsHeight / scalingFactor;
         mDensity = metrics.densityDpi;
 
         // Create an ImageReader object with the proper display dimensions and PixelFormat
