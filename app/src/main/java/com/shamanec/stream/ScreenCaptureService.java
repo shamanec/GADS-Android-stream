@@ -61,17 +61,17 @@ public class ScreenCaptureService extends Service {
     public void setTargetFPS(int fps) {
         this.targetFPS = fps;
         this.frameIntervalMs = 1000 / fps;
-        Log.d("ScreenCaptureService", "Target FPS set to: " + fps);
+        Log.d("ScreenCaptureService", "Target FPS set to: " + this.targetFPS);
     }
 
     public void setJpegQuality(int jpegQuality) {
         this.jpegQuality = jpegQuality;
-        Log.d("ScreenCaptureService", "Jpeg quality set to: " + jpegQuality);
+        Log.d("ScreenCaptureService", "Jpeg quality set to: " + this.jpegQuality);
     }
 
     public void setScalingFactor(int scalingFactor) {
         this.scalingFactor = scalingFactor == 50 ? 2 : 4;
-        Log.d("ScreenCaptureService", "Scaling factor set to: " + scalingFactor);
+        Log.d("ScreenCaptureService", "Scaling factor set to: " + this.scalingFactor);
     }
 
     public ScreenCaptureService() throws IOException {
