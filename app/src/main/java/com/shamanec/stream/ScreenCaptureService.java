@@ -141,7 +141,6 @@ public class ScreenCaptureService extends Service {
 
     BlockingQueue<Bitmap> imageQueue = new LinkedBlockingDeque<>(3);
     private class ImageConsumer implements Runnable {
-        private String previousBitmapHash = null;
 
         @Override
         public void run() {
@@ -150,21 +149,12 @@ public class ScreenCaptureService extends Service {
                     // Take the next image from the queue (this will block if the queue is empty)
                     Bitmap bitmap = imageQueue.take();
 
-                    // Get the hash of the current bitmap
-                    String currentBitmapHash = getBitmapHash(bitmap);
-                    // If the current bitmap hash has is different from the previous bitmap hash
-                    // Then we have a new different frame so we sent it
-                    // Else we just skip the frame and recycle the bitmap directly and wait for next frame
-                    if (!currentBitmapHash.equals(previousBitmapHash)) {
-                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, jpegQuality, outputStream);
-                        byte[] compressedImage = outputStream.toByteArray();
-
-                        server.broadcast(compressedImage);
-                        previousBitmapHash = currentBitmapHash;
-                    }
-
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, jpegQuality, outputStream);
                     bitmap.recycle();
+
+                    byte[] compressedImage = outputStream.toByteArray();
+                    server.broadcast(compressedImage);
 
                     // Wait for the frame interval before capturing the next frame
                     Thread.sleep(frameIntervalMs);
