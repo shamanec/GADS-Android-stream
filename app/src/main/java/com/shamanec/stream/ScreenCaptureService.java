@@ -1,12 +1,15 @@
 package com.shamanec.stream;
 
+import static com.shamanec.stream.IntentActionConstants.ORIENTATION_CHANGED_ACTION;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.hardware.display.DisplayManager;
@@ -15,29 +18,23 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
-import android.view.OrientationEventListener;
 import android.view.WindowManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import androidx.core.util.Pair;
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.uiautomator.UiDevice;
 
 public class ScreenCaptureService extends Service {
     private MediaProjection mMediaProjection;
@@ -49,12 +46,13 @@ public class ScreenCaptureService extends Service {
     private int mWidth;
     private int mHeight;
     private int mRotation;
-    private OrientationChangeCallback mOrientationChangeCallback;
 
     private int targetFPS = 15;
     private int jpegQuality = 90;
     private int scalingFactor = 2;
     private long frameIntervalMs = 1000 / targetFPS;
+    private BroadcastReceiver configurationChangeReceiver;
+    private static final String TAG = "ScreenCaptureService";
 
     LocalWebsocketServer server;
 
@@ -165,25 +163,6 @@ public class ScreenCaptureService extends Service {
                 }
             }
         }
-
-        private String getBitmapHash(Bitmap bitmap) {
-            try {
-                MessageDigest digest = MessageDigest.getInstance("MD5");
-                ByteBuffer buffer = ByteBuffer.allocate(bitmap.getByteCount());
-                bitmap.copyPixelsToBuffer(buffer);
-                byte[] pixelData = buffer.array();
-                byte[] hashBytes = digest.digest(pixelData);
-
-                // Convert hash bytes to hex string
-                StringBuilder hashString = new StringBuilder();
-                for (byte b : hashBytes) {
-                    hashString.append(String.format("%02x", b));
-                }
-                return hashString.toString();
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
@@ -202,38 +181,6 @@ public class ScreenCaptureService extends Service {
         }
     }
 
-    // Callback to reset the virtual display when orientation changes
-    private class OrientationChangeCallback extends OrientationEventListener {
-
-        OrientationChangeCallback(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void onOrientationChanged(int orientation) {
-            imageQueue.clear();
-            // When orientation changes get the display rotation
-            final int rotation = mDisplay.getRotation();
-            // If the current rotation is different than the previous rotation
-            // Re-assign it
-            if (rotation != mRotation) {
-                mRotation = rotation;
-                try {
-                    // Clean up the previous virtual display if it exists
-                    if (mVirtualDisplay != null) mVirtualDisplay.release();
-
-                    // Start the onImageAvailableListener on the image reader
-                    if (mImageReader != null) mImageReader.setOnImageAvailableListener(null, null);
-
-                    // re-create virtual display depending on device width / height
-                    createVirtualDisplay();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     // The MediaProjection.Callback class is a callback interface for receiving updates about changes to a media projection.
     // this code ensures that resources used by the media projection are properly released when the media projection stops, which helps to avoid memory leaks and other issues.
     private class MediaProjectionStopCallback extends MediaProjection.Callback {
@@ -244,7 +191,6 @@ public class ScreenCaptureService extends Service {
                 // Release virtual display, image reader and orientation change callback
                 if (mVirtualDisplay != null) mVirtualDisplay.release();
                 if (mImageReader != null) mImageReader.setOnImageAvailableListener(null, null);
-                if (mOrientationChangeCallback != null) mOrientationChangeCallback.disable();
                 // Unregister the MediaProjectionStopCallback object (this) from the media projection.
                 // This ensures that the onStop() method is not called again if the media projection is stopped again in the future.
                 mMediaProjection.unregisterCallback(MediaProjectionStopCallback.this);
@@ -257,9 +203,53 @@ public class ScreenCaptureService extends Service {
         return null;
     }
 
+    @SuppressLint({"UnspecifiedRegisterReceiverFlag"})
     @Override
     public void onCreate() {
         super.onCreate();
+
+        configurationChangeReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (ORIENTATION_CHANGED_ACTION.equals(intent.getAction())) {
+                    imageQueue.clear();
+                    // When orientation changes get the display rotation
+                    final int rotation = mDisplay.getRotation();
+                    // If the current rotation is different than the previous rotation
+                    // Re-assign it
+                    if (rotation != mRotation) {
+                        mRotation = rotation;
+                        try {
+                            // Clean up the previous virtual display if it exists
+                            if (mVirtualDisplay != null) mVirtualDisplay.release();
+
+                            // Start the onImageAvailableListener on the image reader
+                            if (mImageReader != null)
+                                mImageReader.setOnImageAvailableListener(null, null);
+
+                            // re-create virtual display depending on device width / height
+                            createVirtualDisplay();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        };
+
+        IntentFilter orientationChangeFilter = new IntentFilter(ORIENTATION_CHANGED_ACTION);
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { // API 26+
+                registerReceiver(configurationChangeReceiver, orientationChangeFilter, Context.RECEIVER_NOT_EXPORTED);
+                Log.d(TAG, "Receiver registered with RECEIVER_NOT_EXPORTED (API 26+).");
+            } else { // API below 26
+                registerReceiver(configurationChangeReceiver, orientationChangeFilter);
+                Log.d(TAG, "Receiver registered without flags (API < 26).");
+            }
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Error registering receiver: " + e.getMessage());
+        }
 
         // start capture handling thread
         new Thread() {
@@ -270,6 +260,12 @@ public class ScreenCaptureService extends Service {
                 Looper.loop();
             }
         }.start();
+    }
+
+    @Override
+    public void onDestroy() {
+        unregisterReceiver(configurationChangeReceiver);
+        super.onDestroy();
     }
 
     // The onStartCommand() method is called by the Android system when the service is started
@@ -311,12 +307,6 @@ public class ScreenCaptureService extends Service {
                 // Get the actual display
                 mDisplay = windowManager.getDefaultDisplay();
                 createVirtualDisplay();
-
-                // Register orientation change callback
-                mOrientationChangeCallback = new OrientationChangeCallback(this);
-                if (mOrientationChangeCallback.canDetectOrientation()) {
-                    mOrientationChangeCallback.enable();
-                }
             }
         }
     }
