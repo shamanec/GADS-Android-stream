@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.shamanec.stream"
     android:versionCode="1"
     android:versionName="1.0">
 
@@ -11,7 +10,10 @@
     <uses-permission android:name="android.permission.INJECT_EVENTS"
         tools:ignore="ProtectedPermissions" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
+        android:name=".GadsApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="GADS-Stream">
